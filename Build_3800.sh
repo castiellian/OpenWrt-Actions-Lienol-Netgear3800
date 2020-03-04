@@ -17,7 +17,7 @@ git clone https://github.com/vernesong/OpenClash package/OpenClash
 git clone https://github.com/kang-mk/luci-app-serverchan package/luci-app-serverchan
 git clone https://github.com/kang-mk/luci-app-smartinfo package/luci-app-smartinfo
 
-# 创建自定义配置文件 - OpenWrt-x86-64
+# 创建自定义配置文件 - OpenWrt-3800
 
 rm -f ./.config*
 touch ./.config
