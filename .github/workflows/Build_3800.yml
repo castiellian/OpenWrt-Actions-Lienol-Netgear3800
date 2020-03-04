@@ -6,7 +6,7 @@
 # Blog: https://p3terx.com
 #=================================================
 
-name: OpenWrt-x86-64-Actions
+name: OpenWrt-3800-Actions
 
 on:
 # 定时触发(每天早6点)
@@ -38,7 +38,7 @@ on:
 env:
   REPO_URL: https://github.com/Lienol/openwrt
   REPO_BRANCH: dev-19.07
-  DIY_SH: OpenWrt-x86-64.sh
+  DIY_SH: Build_3800.sh
   FREE_UP_DISK: false
   SSH_ACTIONS: false
   UPLOAD_BIN_DIR: true
@@ -82,7 +82,7 @@ jobs:
     - name: 安装源
       run: cd openwrt && ./scripts/feeds install -a
 
-    - name: 创建自定义配置文件 - OpenWrt-x86-64
+    - name: 创建自定义配置文件 - OpenWrt-3800
       run: |
         [ -e files ] && mv files openwrt/files
         chmod +x $DIY_SH
@@ -92,3 +92,37 @@ jobs:
     - name: 开启SSH远程连接
       uses: P3TERX/debugger-action@master
       if: env.SSH_ACTIONS == 'true'
+      
+    - name: 下载软件包
+      id: package
+      run: |
+        cd openwrt && make download -j8
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;
+    - name: 编译固件
+      id: compile
+      run: |
+        cd openwrt
+        echo -e "$(nproc) thread compile"
+        make -j$(nproc) || make -j1 V=s
+        echo "::set-output name=status::success"
+    - name: 上传BIN目录
+      uses: actions/upload-artifact@master
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+      with:
+        name: OpenWrt_bin
+        path: openwrt/bin
+
+    - name: 整理文件
+      id: organize
+      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      run: |
+          rm -rf ./artifact/
+          mkdir -p ./artifact/
+          find openwrt/bin/targets/ -name "*combined*img*" | xargs -i mv -f {} ./artifact/
+          find openwrt/bin/targets/ -name "*uefi*img*" | xargs -i mv -f {} ./artifact/
+    - name: 上传固件
+      uses: actions/upload-artifact@master
+      with:
+        name: OpenWrt_firmware
+        path: ./artifact/
