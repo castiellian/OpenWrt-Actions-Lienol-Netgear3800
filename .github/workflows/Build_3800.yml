@@ -36,7 +36,7 @@ on:
 #UPLOAD_FIRMWARE上传固件目录
 
 env:
-  REPO_URL: https://github.com/Lienol/openwrt
+  REPO_URL: https://github.com/castiellian/openwrt.git
   REPO_BRANCH: dev-19.07
   DIY_SH: Build_3800.sh
   FREE_UP_DISK: false
